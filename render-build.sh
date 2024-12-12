@@ -1,34 +1,36 @@
 #!/usr/bin/env bash
+set -e
 
-# Create Chrome directory
-mkdir -p /opt/render/project/chrome-linux
+# Install required Python packages
+pip install --upgrade pip
+pip install --upgrade 'selenium>=4.15.2' 'webdriver-manager>=4.0.1'
+
+# Create Chrome directories
+CHROME_DIR="/opt/render/project/.chrome"
+CHROME_LINUX_DIR="${CHROME_DIR}/chrome-linux64"
+mkdir -p "$CHROME_LINUX_DIR"
 
 # Download and install Chrome
-echo "Installing Google Chrome"
-wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-dpkg-deb -x google-chrome-stable_current_amd64.deb /opt/render/project/chrome-linux
+CHROME_VERSION="google-chrome-stable_current_amd64.deb"
+wget -q "https://storage.googleapis.com/chrome-for-testing-public/131.0.6778.108/linux64/chrome-linux64.zip"
 
-# Install ChromeDriver
-echo "Installing ChromeDriver"
-CHROME_DRIVER_VERSION=$(curl -sS https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
-wget https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip
-unzip chromedriver_linux64.zip
-chmod +x chromedriver
-mkdir -p $HOME/bin
-mv chromedriver $HOME/bin/chromedriver || echo "Could not move chromedriver to $HOME/bin"
+# Extract Chrome package
+dpkg -x "${CHROME_VERSION}" "$CHROME_DIR"
 
-# Add ChromeDriver to PATH
-export PATH=$HOME/bin:$PATH
+# Copy the Chrome binary to the target directory
+cp "$CHROME_DIR/opt/google/chrome/chrome" "$CHROME_LINUX_DIR/chrome"
 
-# Create symlink for Chrome binary
-CHROME_PATH="/opt/render/project/chrome-linux/opt/google/chrome/chrome"
-ln -s $CHROME_PATH /opt/render/project/chrome-linux/chrome || echo "Could not create symlink"
+# Set permissions
+chmod +x "$CHROME_LINUX_DIR/chrome"
 
 # Cleanup
-rm google-chrome-stable_current_amd64.deb chromedriver_linux64.zip
-######versionnnn
-# Verify installation 
-echo "Chrome version:"
-$CHROME_PATH --version || echo "Chrome not found"
-echo "ChromeDriver version:"
-chromedriver --version || echo "ChromeDriver not found"
+rm -f "${CHROME_VERSION}"
+rm -rf "$CHROME_DIR/opt"
+
+# Verify installation
+if [ ! -f "$CHROME_LINUX_DIR/chrome" ]; then
+    echo "Chrome installation failed"
+    exit 1
+fi
+
+echo "Chrome installation completed successfully"
