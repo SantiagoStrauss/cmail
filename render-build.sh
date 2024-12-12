@@ -14,17 +14,17 @@ mkdir -p "$CHROME_LINUX_DIR"
 wget -q "https://storage.googleapis.com/chrome-for-testing-public/131.0.6778.108/linux64/chrome-linux64.zip"
 unzip chrome-linux64.zip -d "$CHROME_LINUX_DIR"
 
-# Copy the Chrome binary to the target directory
-cp "$CHROME_LINUX_DIR/chrome" "$CHROME_LINUX_DIR/chrome"
+# Correct the Chrome binary path
+CHROME_BINARY_PATH="$CHROME_LINUX_DIR/chrome-linux64/chrome"
 
 # Set permissions
-chmod +x "$CHROME_LINUX_DIR/chrome"
+chmod +x "$CHROME_BINARY_PATH"
 
 # Cleanup
 rm -f chrome-linux64.zip
 
 # Verify installation
-if [ ! -f "$CHROME_LINUX_DIR/chrome" ]; then
+if [ ! -f "$CHROME_BINARY_PATH" ]; then
     echo "Chrome installation failed"
     exit 1
 fi
