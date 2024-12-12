@@ -18,7 +18,8 @@ from dataclasses import dataclass
 from contextlib import contextmanager
 import time
 import traceback
-
+###111111
+###sin pantallazo
 @dataclass
 class CompromisedData:
     company_name: str
@@ -67,13 +68,13 @@ class CompromisedEmailScraper:
         options.add_experimental_option('useAutomationExtension', False)
         
         # Use Render's Chrome installation path
-        chrome_binary = '/opt/render/project/chrome-linux/chrome'
+        chrome_binary = '/opt/render/project/chrome-linux/opt/google/chrome/chrome'
         options.binary_location = chrome_binary
         
         options.add_argument(
             'user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
             'AppleWebKit/537.36 (KHTML, like Gecko) '
-            'Chrome/131.0.0.0 Safari/537.36'
+            'Chrome/98.0.4758.102 Safari/537.36'
         )
         return options
 
