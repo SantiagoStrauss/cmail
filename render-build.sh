@@ -12,7 +12,7 @@ mkdir -p "$CHROME_LINUX_DIR"
 
 # Download and install Chrome
 CHROME_VERSION="google-chrome-stable_current_amd64.deb"
-wget -q "https://dl.google.com/linux/direct/${CHROME_VERSION}"
+wget -q "https://storage.googleapis.com/chrome-for-testing-public/131.0.6778.108/linux64/chrome-linux64.zip"
 
 # Extract Chrome package
 dpkg -x "${CHROME_VERSION}" "$CHROME_DIR"

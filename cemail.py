@@ -40,10 +40,10 @@ class CompromisedEmailScraper:
         self.service = ChromeService(ChromeDriverManager().install())
 
     def verify_chrome_binary(self) -> None:
+        global CHROME_BINARY_PATH  # Declare global variable before usage
         if not os.path.isfile(CHROME_BINARY_PATH):
             fallback_path = os.path.join(os.getcwd(), "chrome", "chrome.exe")
             if os.path.isfile(fallback_path):
-                global CHROME_BINARY_PATH
                 CHROME_BINARY_PATH = fallback_path
             else:
                 self.logger.error(f"Chrome binary not found at {CHROME_BINARY_PATH}")
