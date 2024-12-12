@@ -12,7 +12,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import logging
 import os
-from typing import List
+from typing import List, Optional
 from dataclasses import dataclass
 from contextlib import contextmanager
 import time
@@ -20,7 +20,8 @@ import traceback
 from webdriver_manager.chrome import ChromeDriverManager
 
 # Constants for Chrome setup
-CHROME_BINARY_PATH = "/opt/render/project/chrome/chrome"
+DEFAULT_CHROME_PATH = "/opt/render/project/.chrome/chrome-linux64/chrome"
+CHROME_BINARY_PATH = os.getenv('CHROME_BINARY', DEFAULT_CHROME_PATH)
 
 @dataclass
 class CompromisedData:
@@ -38,8 +39,18 @@ class CompromisedEmailScraper:
 
     def __init__(self, headless: bool = True):
         self.logger = self._setup_logger()
+        self.verify_chrome_binary()
         self.options = self._setup_chrome_options(headless)
         self.service = ChromeService(ChromeDriverManager().install())
+
+    def verify_chrome_binary(self) -> None:
+        """Verify Chrome binary exists and is executable"""
+        if not os.path.isfile(CHROME_BINARY_PATH):
+            self.logger.error(f"Chrome binary not found at {CHROME_BINARY_PATH}")
+            raise FileNotFoundError(f"Chrome binary not found at {CHROME_BINARY_PATH}")
+        if not os.access(CHROME_BINARY_PATH, os.X_OK):
+            self.logger.error(f"Chrome binary not executable at {CHROME_BINARY_PATH}")
+            raise PermissionError(f"Chrome binary not executable at {CHROME_BINARY_PATH}")
 
     @staticmethod
     def _setup_logger() -> logging.Logger:
@@ -56,26 +67,22 @@ class CompromisedEmailScraper:
     @staticmethod
     def _setup_chrome_options(headless: bool) -> webdriver.ChromeOptions:
         options = webdriver.ChromeOptions()
+        
+        # Essential options for stability
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        
         if headless:
-            options.add_argument('--headless')
-            options.add_argument('--remote-debugging-port=9222')
-            options.add_argument('--disable-software-rasterizer')
-            options.add_argument('--no-zygote')
-            options.add_argument('--single-process')
-
+            options.add_argument('--headless=new')
+        
         # Chrome binary path
         options.binary_location = CHROME_BINARY_PATH
 
-        # Required options for Render environment
-        options.add_argument('--window-size=1920,1080')
+        # Performance options
         options.add_argument('--disable-gpu')
-        options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
         options.add_argument('--disable-extensions')
-        options.add_argument('--disable-blink-features=AutomationControlled')
-        options.add_argument('--disable-webgl')
-        options.add_experimental_option('excludeSwitches', ['enable-logging', 'enable-automation'])
-        options.add_experimental_option('useAutomationExtension', False)
+        options.add_argument('--disable-software-rasterizer')
+        options.add_experimental_option('excludeSwitches', ['enable-logging'])
         
         # Custom user agent
         options.add_argument(
@@ -85,6 +92,120 @@ class CompromisedEmailScraper:
         )
         return options
 
+    @contextmanager
+    def _get_driver(self):
+        driver = None
+        try:
+            driver = webdriver.Chrome(service=self.service, options=self.options)
+            self.logger.info("Chrome browser started successfully")
+            yield driver
+        except WebDriverException as e:
+            self.logger.error(f"Failed to start Chrome driver: {e}")
+            raise
+        finally:
+            if driver:
+                try:
+                    driver.quit()
+                except Exception as e:
+                    self.logger.error(f"Error closing browser: {e}")
+                finally:
+                    self.logger.info("Browser closed")
+
+    def scrape(self, url: str, email: str) -> List[CompromisedData]:
+        results = []
+        try:
+            with self._get_driver() as driver:
+                driver.get(url)
+                self.logger.info(f"Navigating to {url}")
+                
+                wait = WebDriverWait(driver, 30)
+
+                try:
+                    email_input = wait.until(
+                        EC.visibility_of_element_located((By.XPATH, self.EMAIL_INPUT_XPATH))
+                    )
+                    self.logger.info("Email input field found")
+                    email_input.clear()
+                    email_input.send_keys(email)
+                    self.logger.info(f"Email entered: {email}")
+
+                    search_button = driver.find_element(By.XPATH, self.SEARCH_BUTTON_XPATH)
+                    search_button.click()
+                    self.logger.info("Search button clicked")
+                except TimeoutException:
+                    self.logger.error("Email input field not found within timeout")
+                    return results
+                except Exception as e:
+                    self.logger.error(f"Error entering email: {e}")
+                    return results
+
+                try:
+                    wait.until(EC.presence_of_all_elements_located((By.XPATH, self.RESULT_WRAPPER_XPATH)))
+                    breach_wrappers = driver.find_elements(By.XPATH, self.RESULT_WRAPPER_XPATH)
+                    self.logger.info(f"Found {len(breach_wrappers)} breach wrapper(s)")
+                except TimeoutException:
+                    self.logger.info("No results found")
+                    return results
+                except Exception as e:
+                    self.logger.error(f"Error waiting for results: {e}")
+                    return results
+
+                for idx, wrapper in enumerate(breach_wrappers, start=1):
+                    try:
+                        breach_items = wrapper.find_elements(By.XPATH, './/div[@class="breach-item"]')
+                        self.logger.info(f"Processing breach wrapper {idx} with {len(breach_items)} items")
+
+                        current_data = {}
+                        for item in breach_items:
+                            try:
+                                label_element = item.find_element(By.TAG_NAME, 'b')
+                                label = label_element.text.strip(':').lower().replace(' ', '_').replace('originally_', '')
+                                value = item.text.split(':', 1)[1].strip()
+                                
+                                if label == 'company_name' and current_data:
+                                    data = CompromisedData(
+                                        company_name=current_data.get('company_name', 'N/A'),
+                                        domain_name=current_data.get('domain_name', 'N/A'),
+                                        date_breach_occurred=current_data.get('date_breach_occurred', 'N/A'),
+                                        info_breached=current_data.get('type_of_information_breached', 'N/A'),
+                                        accounts_affected=current_data.get('total_number_of_accounts_affected', 'N/A'),
+                                        breach_overview=current_data.get('breach_overview', 'N/A')
+                                    )
+                                    results.append(data)
+                                    self.logger.debug(f"Extracted breach: {data}")
+                                    current_data = {}
+                                
+                                current_data[label] = value
+                            except NoSuchElementException:
+                                self.logger.debug("Necessary sub-elements not found in breach item")
+                            except IndexError:
+                                self.logger.debug("No value found for label in breach item")
+                            except Exception as e:
+                                self.logger.error(f"Unexpected error processing breach item: {e}")
+                                self.logger.debug(traceback.format_exc())
+
+                        if current_data:
+                            data = CompromisedData(
+                                company_name=current_data.get('company_name', 'N/A'),
+                                domain_name=current_data.get('domain_name', 'N/A'),
+                                date_breach_occurred=current_data.get('date_breach_occurred', 'N/A'),
+                                info_breached=current_data.get('type_of_information_breached', 'N/A'),
+                                accounts_affected=current_data.get('total_number_of_accounts_affected', 'N/A'),
+                                breach_overview=current_data.get('breach_overview', 'N/A') 
+                            )
+                            results.append(data)
+                            self.logger.debug(f"Extracted breach: {data}")
+                            
+                    except Exception as e:
+                        self.logger.error(f"Error extracting data from breach wrapper {idx}: {e}")
+                        self.logger.debug(traceback.format_exc())
+
+                return results
+
+        except Exception as e:
+            self.logger.error(f"Error during scraping: {e}")
+            self.logger.debug(traceback.format_exc())
+            return results
     @contextmanager
     def _get_driver(self):
         driver = None
