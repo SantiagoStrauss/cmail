@@ -41,7 +41,10 @@ class CompromisedEmailScraper:
         self.logger = self._setup_logger()
         self.verify_chrome_binary()
         self.options = self._setup_chrome_options(headless)
-        self.service = ChromeService(ChromeDriverManager().install())
+        self.service = ChromeService(
+            ChromeDriverManager(version="131.0.6778.108").install()
+        )
+
 
     def verify_chrome_binary(self) -> None:
         """Verify Chrome binary exists and is executable"""
