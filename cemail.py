@@ -52,7 +52,7 @@ class CompromisedEmailScraper:
             logger.addHandler(handler)
         return logger
 
-    @staticmethod ###versionnnn
+    @staticmethod
     def _setup_chrome_options(headless: bool) -> webdriver.ChromeOptions:
         options = webdriver.ChromeOptions()
         if headless:
@@ -67,8 +67,8 @@ class CompromisedEmailScraper:
         options.add_experimental_option('excludeSwitches', ['enable-logging', 'enable-automation'])
         options.add_experimental_option('useAutomationExtension', False)
         
-        # Use Render's Chrome installation path
-        chrome_binary = '/opt/render/project/chrome-linux/opt/google/chrome/chrome'
+        # Update Chrome binary path to match render-build.sh location
+        chrome_binary = '/opt/render/project/chrome/chrome'
         options.binary_location = chrome_binary
         
         options.add_argument(
