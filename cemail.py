@@ -57,14 +57,15 @@ class CompromisedEmailScraper:
     def _setup_chrome_options(headless: bool) -> webdriver.ChromeOptions:
         options = webdriver.ChromeOptions()
         if headless:
-            # Use the standard headless flag
             options.add_argument('--headless')
-            # Add remote debugging port
             options.add_argument('--remote-debugging-port=9222')
-        
+            options.add_argument('--disable-software-rasterizer')
+            options.add_argument('--no-zygote')
+            options.add_argument('--single-process')
+
         # Chrome binary path
         options.binary_location = CHROME_BINARY_PATH
-        
+
         # Required options for Render environment
         options.add_argument('--window-size=1920,1080')
         options.add_argument('--disable-gpu')
@@ -75,7 +76,6 @@ class CompromisedEmailScraper:
         options.add_argument('--disable-webgl')
         options.add_experimental_option('excludeSwitches', ['enable-logging', 'enable-automation'])
         options.add_experimental_option('useAutomationExtension', False)
-        options.add_argument('--disable-software-rasterizer')
         
         # Custom user agent
         options.add_argument(
