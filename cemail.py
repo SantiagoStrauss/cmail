@@ -57,7 +57,10 @@ class CompromisedEmailScraper:
     def _setup_chrome_options(headless: bool) -> webdriver.ChromeOptions:
         options = webdriver.ChromeOptions()
         if headless:
-            options.add_argument('--headless=new')
+            # Use the standard headless flag
+            options.add_argument('--headless')
+            # Add remote debugging port
+            options.add_argument('--remote-debugging-port=9222')
         
         # Chrome binary path
         options.binary_location = CHROME_BINARY_PATH
