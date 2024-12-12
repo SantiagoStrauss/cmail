@@ -15,13 +15,11 @@ import os
 from typing import List, Optional
 from dataclasses import dataclass
 from contextlib import contextmanager
-import time
 import traceback
 from webdriver_manager.chrome import ChromeDriverManager
 
 # Constants for Chrome setup
 DEFAULT_CHROME_PATH = "/opt/render/project/.chrome/chrome-linux64/chrome"
-CHROME_VERSION = "131.0.6778.108"
 CHROME_BINARY_PATH = os.getenv('CHROME_BINARY', DEFAULT_CHROME_PATH)
 
 @dataclass
@@ -38,9 +36,8 @@ class CompromisedEmailScraper:
         self.logger = self._setup_logger()
         self.verify_chrome_binary()
         self.options = self._setup_chrome_options(headless)
-        self.service = ChromeService(
-            ChromeDriverManager(version=CHROME_VERSION).install()
-        )
+        # Remove version specification to automatically get the matching driver
+        self.service = ChromeService(ChromeDriverManager().install())
 
     def verify_chrome_binary(self) -> None:
         if not os.path.isfile(CHROME_BINARY_PATH):
@@ -55,7 +52,6 @@ class CompromisedEmailScraper:
         if not os.access(CHROME_BINARY_PATH, os.X_OK):
             self.logger.error(f"Chrome binary not executable at {CHROME_BINARY_PATH}")
             raise PermissionError(f"Chrome binary not executable at {CHROME_BINARY_PATH}")
-
 
     @staticmethod
     def _setup_logger() -> logging.Logger:
@@ -89,7 +85,7 @@ class CompromisedEmailScraper:
         options.add_argument('--disable-software-rasterizer')
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         
-        # Custom user agent
+        # Custom user agent (optional)
         options.add_argument(
             'user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
             'AppleWebKit/537.36 (KHTML, like Gecko) '

@@ -11,22 +11,21 @@ CHROME_LINUX_DIR="${CHROME_DIR}/chrome-linux64"
 mkdir -p "$CHROME_LINUX_DIR"
 
 # Download and install Chrome
-CHROME_VERSION="131.0.6778.108"
-wget -q "https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}-1_amd64.deb"
+CHROME_VERSION="google-chrome-stable_current_amd64.deb"
+wget -q "https://dl.google.com/linux/direct/${CHROME_VERSION}"
 
 # Extract Chrome package
-dpkg -x google-chrome-stable_*_amd64.deb "$CHROME_DIR"
+dpkg -x "${CHROME_VERSION}" "$CHROME_DIR"
 
-# Create chrome-linux64 directory and move binary
-mkdir -p "$CHROME_LINUX_DIR"
-cp "$CHROME_DIR/usr/bin/google-chrome-stable" "$CHROME_LINUX_DIR/chrome"
+# Copy the Chrome binary to the target directory
+cp "$CHROME_DIR/opt/google/chrome/chrome" "$CHROME_LINUX_DIR/chrome"
 
 # Set permissions
 chmod +x "$CHROME_LINUX_DIR/chrome"
 
 # Cleanup
-rm -f google-chrome-stable_*_amd64.deb
-rm -rf "$CHROME_DIR/usr"
+rm -f "${CHROME_VERSION}"
+rm -rf "$CHROME_DIR/opt"
 
 # Verify installation
 if [ ! -f "$CHROME_LINUX_DIR/chrome" ]; then
