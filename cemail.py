@@ -75,6 +75,7 @@ class CompromisedEmailScraper:
         options.add_argument('--disable-webgl')
         options.add_experimental_option('excludeSwitches', ['enable-logging', 'enable-automation'])
         options.add_experimental_option('useAutomationExtension', False)
+        options.add_argument('--disable-software-rasterizer')
         
         # Custom user agent
         options.add_argument(
