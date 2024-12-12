@@ -3,7 +3,7 @@ set -e
 
 # Install required Python packages
 pip install --upgrade pip
-pip install --upgrade 'selenium>=4.15.2' 'webdriver-manager>=4.0.1'
+pip install --upgrade 'selenium>=4.15.2' 'webdriver-manager>=4.0.2'
 
 # Create Chrome directories
 CHROME_DIR="/opt/render/project/.chrome"

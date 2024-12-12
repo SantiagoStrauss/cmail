@@ -37,7 +37,7 @@ class CompromisedEmailScraper:
         self.verify_chrome_binary()
         self.options = self._setup_chrome_options(headless)
         # Remove version specification to automatically get the matching driver
-        self.service = ChromeService(ChromeDriverManager().install())
+        self.service = ChromeService(ChromeDriverManager(version="131.0.6778.108").install())
 
     def verify_chrome_binary(self) -> None:
         global CHROME_BINARY_PATH  # Declare global variable before usage
