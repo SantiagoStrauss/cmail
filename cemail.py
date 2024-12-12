@@ -7,20 +7,20 @@ from selenium.common.exceptions import (
     ElementClickInterceptedException,
     TimeoutException,
 )
-from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import logging
 import os
-from typing import List, Optional
+from typing import List
 from dataclasses import dataclass
 from contextlib import contextmanager
 import time
 import traceback
+from webdriver_manager.chrome import ChromeDriverManager
 
 # Constants for Chrome setup
 CHROME_BINARY_PATH = "/opt/render/project/chrome/chrome"
-CHROMEDRIVER_PATH = "/opt/render/project/chromedriver/chromedriver"
 
 @dataclass
 class CompromisedData:
@@ -39,7 +39,7 @@ class CompromisedEmailScraper:
     def __init__(self, headless: bool = True):
         self.logger = self._setup_logger()
         self.options = self._setup_chrome_options(headless)
-        self.service = Service(executable_path=CHROMEDRIVER_PATH)
+        self.service = ChromeService(ChromeDriverManager().install())
 
     @staticmethod
     def _setup_logger() -> logging.Logger:
@@ -106,7 +106,7 @@ class CompromisedEmailScraper:
         try:
             with self._get_driver() as driver:
                 driver.get(url)
-                self.logger.info(f"Navigando a {url}")
+                self.logger.info(f"Navigating to {url}")
                 
                 wait = WebDriverWait(driver, 30)
 
@@ -114,19 +114,19 @@ class CompromisedEmailScraper:
                     email_input = wait.until(
                         EC.visibility_of_element_located((By.XPATH, self.EMAIL_INPUT_XPATH))
                     )
-                    self.logger.info("Campo de correo electrónico encontrado.")
+                    self.logger.info("Email input field found.")
                     email_input.clear()
                     email_input.send_keys(email)
-                    self.logger.info(f"Correo ingresado: {email}")
+                    self.logger.info(f"Email entered: {email}")
 
                     search_button = driver.find_element(By.XPATH, self.SEARCH_BUTTON_XPATH)
                     search_button.click()
-                    self.logger.info("Botón de búsqueda clickeado.")
+                    self.logger.info("Search button clicked.")
                 except TimeoutException:
-                    self.logger.error("Campo de correo electrónico no encontrado dentro del tiempo de espera.")
+                    self.logger.error("Email input field not found within the wait time.")
                     return results
                 except Exception as e:
-                    self.logger.error(f"Error al ingresar el correo: {e}")
+                    self.logger.error(f"Error entering email: {e}")
                     return results
 
                 try:
@@ -193,6 +193,6 @@ class CompromisedEmailScraper:
                 return results
 
         except Exception as e:
-            self.logger.error(f"Error durante el scraping: {e}")
+            self.logger.error(f"Error during scraping: {e}")
             self.logger.error(traceback.format_exc())
             return results
