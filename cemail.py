@@ -18,7 +18,7 @@ from contextlib import contextmanager
 import traceback
 from webdriver_manager.chrome import ChromeDriverManager
 
-
+####funciona WORKERS
 # Constants for Chrome setup
 DEFAULT_CHROME_PATH = "/opt/render/project/.chrome/chrome-linux64/chrome-linux64/chrome"
 CHROME_BINARY_PATH = os.getenv('CHROME_BINARY', DEFAULT_CHROME_PATH)
