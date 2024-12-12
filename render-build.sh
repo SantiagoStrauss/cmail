@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
+set -e  # Exit on error
 
 # Create Chrome directory
 mkdir -p /opt/render/project/chrome-linux
 
-# Download and install Chrome
-echo "Installing Google Chrome"
-wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-dpkg-deb -x google-chrome-stable_current_amd64.deb /opt/render/project/chrome-linux
+# Download specific version of Chrome that matches ChromeDriver
+echo "Installing Google Chrome version 114"
+wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_114.0.5735.90-1_amd64.deb
+dpkg-deb -x google-chrome-stable_114.0.5735.90-1_amd64.deb /opt/render/project/chrome-linux
 
-# Install ChromeDriver
-echo "Installing ChromeDriver"
-CHROME_DRIVER_VERSION=$(curl -sS https://chromedriver.storage.googleapis.com/LATEST_RELEASE_131)
-wget https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip
+# Install matching ChromeDriver version
+echo "Installing ChromeDriver version 114.0.5735.90"
+wget https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip
 unzip chromedriver_linux64.zip
 chmod +x chromedriver
 mkdir -p $HOME/bin
@@ -25,7 +25,7 @@ CHROME_PATH="/opt/render/project/chrome-linux/opt/google/chrome/chrome"
 ln -s $CHROME_PATH /opt/render/project/chrome-linux/chrome || echo "Could not create symlink"
 
 # Cleanup
-rm google-chrome-stable_current_amd64.deb chromedriver_linux64.zip
+rm google-chrome-stable_114.0.5735.90-1_amd64.deb chromedriver_linux64.zip
 
 # Verify installation 
 echo "Chrome version:"
