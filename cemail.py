@@ -21,6 +21,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 # Constants for Chrome setup
 DEFAULT_CHROME_PATH = "/opt/render/project/.chrome/chrome-linux64/chrome"
+CHROME_VERSION = "131.0.6778.108"
 CHROME_BINARY_PATH = os.getenv('CHROME_BINARY', DEFAULT_CHROME_PATH)
 
 @dataclass
@@ -33,27 +34,28 @@ class CompromisedData:
     breach_overview: str 
 
 class CompromisedEmailScraper:
-    EMAIL_INPUT_XPATH = '//*[@id="txtemail"]'
-    SEARCH_BUTTON_XPATH = '//*[@id="btnSubmit"]'
-    RESULT_WRAPPER_XPATH = '//div[@class="breach-wrapper"]'
-
     def __init__(self, headless: bool = True):
         self.logger = self._setup_logger()
         self.verify_chrome_binary()
         self.options = self._setup_chrome_options(headless)
         self.service = ChromeService(
-            ChromeDriverManager(version="131.0.6778.108").install()
+            ChromeDriverManager(version=CHROME_VERSION).install()
         )
 
-
     def verify_chrome_binary(self) -> None:
-        """Verify Chrome binary exists and is executable"""
         if not os.path.isfile(CHROME_BINARY_PATH):
-            self.logger.error(f"Chrome binary not found at {CHROME_BINARY_PATH}")
-            raise FileNotFoundError(f"Chrome binary not found at {CHROME_BINARY_PATH}")
+            fallback_path = os.path.join(os.getcwd(), "chrome", "chrome.exe")
+            if os.path.isfile(fallback_path):
+                global CHROME_BINARY_PATH
+                CHROME_BINARY_PATH = fallback_path
+            else:
+                self.logger.error(f"Chrome binary not found at {CHROME_BINARY_PATH}")
+                raise FileNotFoundError(f"Chrome binary not found at {CHROME_BINARY_PATH}")
+        
         if not os.access(CHROME_BINARY_PATH, os.X_OK):
             self.logger.error(f"Chrome binary not executable at {CHROME_BINARY_PATH}")
             raise PermissionError(f"Chrome binary not executable at {CHROME_BINARY_PATH}")
+
 
     @staticmethod
     def _setup_logger() -> logging.Logger:
