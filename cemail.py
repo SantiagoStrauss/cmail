@@ -52,7 +52,7 @@ class CompromisedEmailScraper:
             logger.addHandler(handler)
         return logger
 
-    @staticmethod
+    @staticmethod ###versionnnn
     def _setup_chrome_options(headless: bool) -> webdriver.ChromeOptions:
         options = webdriver.ChromeOptions()
         if headless:

@@ -10,7 +10,7 @@ dpkg-deb -x google-chrome-stable_current_amd64.deb /opt/render/project/chrome-li
 
 # Install ChromeDriver
 echo "Installing ChromeDriver"
-CHROME_DRIVER_VERSION=$(curl -sS https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
+CHROME_DRIVER_VERSION=$(curl -sS https://chromedriver.storage.googleapis.com/LATEST_RELEASE_131)
 wget https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip
 unzip chromedriver_linux64.zip
 chmod +x chromedriver
