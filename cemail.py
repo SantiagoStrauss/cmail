@@ -17,6 +17,8 @@ from dataclasses import dataclass
 from contextlib import contextmanager
 import traceback
 from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.core.utils import ChromeType
+
 
 # Constants for Chrome setup
 DEFAULT_CHROME_PATH = "/opt/render/project/.chrome/chrome-linux64/chrome-linux64/chrome"
@@ -37,7 +39,9 @@ class CompromisedEmailScraper:
         self.verify_chrome_binary()
         self.options = self._setup_chrome_options(headless)
         # Remove version specification to automatically get the matching driver
-        self.service = ChromeService(ChromeDriverManager(version="131.0.6778.108").install())
+        self.service = ChromeService(
+            ChromeDriverManager(chrome_type=ChromeType.GOOGLE, driver_version="131.0.6778.108").install()
+        )
 
     def verify_chrome_binary(self) -> None:
         global CHROME_BINARY_PATH  # Declare global variable before usage
